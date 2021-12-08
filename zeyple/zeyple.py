@@ -1,9 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import sys
 import os
 import logging
+import logging.handlers
 import email
 import email.mime.multipart
 import email.mime.application
@@ -11,6 +12,7 @@ import email.encoders
 import smtplib
 import copy
 import re
+from configparser import ConfigParser
 from io import BytesIO
 
 try:
@@ -64,9 +66,9 @@ class Zeyple:
     def __init__(self, config_fname='zeyple.conf'):
         self.config = self.load_configuration(config_fname)
 
-        log_file = self.config.get('zeyple', 'log_file')
+        syslog_handler = logging.handlers.SysLogHandler(address = '/dev/log', facility="mail")
         logging.basicConfig(
-            filename=log_file, level=logging.DEBUG,
+            handlers=[syslog_handler], level=logging.DEBUG,
             format='%(asctime)s %(process)s %(levelname)s %(message)s'
         )
         logging.info("Zeyple ready to encrypt outgoing emails")
@@ -74,7 +76,7 @@ class Zeyple:
     def load_configuration(self, filename):
         """Reads and parses the config file"""
 
-        config = SafeConfigParser()
+        config = ConfigParser()
         config.read([
             os.path.join('/etc/', filename),
             filename,
